@@ -23,17 +23,19 @@
 ---
 
 ## Структура репозитория
+```
 devops-diplom/
 ├── README.md
 ├── SOLUTION.md
 ├── terraform/
-│ ├── sa-and-bucket/
-│ └── infra/
+│  ├── sa-and-bucket/
+│  └── infra/
 ├── app/
 ├── k8s-manifests/
 ├── .github/workflows/
 └── images/
-
+```
+...
 ---
 
 ## 1. Создание облачной инфраструктуры
@@ -63,6 +65,7 @@ devops-diplom/
 
 Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
 
+**Скриншот:**
 
 ![Сервисный аккаунт](images/sa-created.png)
 
