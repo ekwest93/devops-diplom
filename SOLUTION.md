@@ -12,7 +12,7 @@
 |---|---|
 | Облако | Yandex.Cloud |
 | IaC | Terraform (S3 backend) |
-| Kubernetes | Yandex Managed Service for Kubernetes (региональный мастер) |
+| Kubernetes | Yandex Managed Service for Kubernetes (зональный мастер) |
 | Worker nodes | Прерываемые ВМ |
 | Registry | Yandex Container Registry |
 | Мониторинг | Helm `kube-prometheus-stack` |
@@ -112,6 +112,13 @@ VPC `diploma-vpc` и две подсети в разных зонах досту
 | Прерываемые | да (preemptible) |
 | Публичный IP | да (nat) |
 | Зона | ru-central1-a |
+
+Подключение kubectl:
+
+yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id b1grvjpek3up0eujvbn7
+kubectl get nodes
+
+Обе ноды в статусе Ready.
 
 ---
 
