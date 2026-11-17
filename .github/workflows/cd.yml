@@ -57,6 +57,8 @@ jobs:
           mkdir -p ~/.kube
           echo '${{ secrets.KUBE_CONFIG }}' > ~/.kube/config
           chmod 600 ~/.kube/config
+          sudo mkdir -p /home/test/yandex-cloud/bin
+          sudo ln -sf "$HOME/yandex-cloud/bin/yc" /home/test/yandex-cloud/bin/yc
 
       - name: Deploy to Kubernetes
         run: |
