@@ -27,9 +27,20 @@ jobs:
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
           echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
 
+      - name: Prepare SA key
+        run: |
+          echo '${{ secrets.YC_SA_KEY_JSON }}' > /tmp/raw.txt
+          python3 - <<'PY'
+          import re
+          text = open('/tmp/raw.txt').read()
+          start = text.find('{')
+          end = text.rfind('}')
+          json_text = text[start:end+1]
+          open('/tmp/sa-key.json', 'w').write(json_text)
+          PY
+
       - name: Login to Yandex Container Registry
         run: |
-          echo '${{ secrets.YC_SA_KEY_JSON }}' > /tmp/sa-key.json
           yc config profile create ci-profile || true
           yc config set service-account-key /tmp/sa-key.json
           echo "$(yc iam create-token)" | docker login --username iam --password-stdin cr.yandex
