@@ -10,8 +10,6 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: cr.yandex
-  REGISTRY_ID: ${{ secrets.YC_REGISTRY_ID }}
   IMAGE_NAME: diploma-app
 
 jobs:
@@ -23,6 +21,11 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Install yc CLI
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
 
       - name: Login to Yandex Container Registry
         run: |
