@@ -7,6 +7,7 @@ on:
 
 env:
   IMAGE_NAME: diploma-app
+  FOLDER_ID: b1grvjpek3up0eujvbn7
 
 jobs:
   release:
@@ -54,11 +55,7 @@ jobs:
 
       - name: Configure kubeconfig
         run: |
-          mkdir -p ~/.kube
-          echo '${{ secrets.KUBE_CONFIG }}' > ~/.kube/config
-          chmod 600 ~/.kube/config
-          sudo mkdir -p /home/test/yandex-cloud/bin
-          sudo ln -sf "$HOME/yandex-cloud/bin/yc" /home/test/yandex-cloud/bin/yc
+          yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id $FOLDER_ID
 
       - name: Deploy to Kubernetes
         run: |
