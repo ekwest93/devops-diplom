@@ -6,10 +6,9 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: grafana.diploma.local
-      http:
+    - http:
         paths:
-          - path: /
+          - path: /grafana
             pathType: Prefix
             backend:
               service:
