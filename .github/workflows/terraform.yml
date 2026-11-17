@@ -44,7 +44,9 @@ jobs:
           yc config profile create ci || true
           yc config set service-account-key /tmp/tf-sa-key.json
           yc config set folder-id b1grvjpek3up0eujvbn7
-          echo "YC_TOKEN=$(yc iam create-token)" >> $GITHUB_ENV
+          TOKEN=$(yc iam create-token)
+          echo "::add-mask::$TOKEN"
+          echo "YC_TOKEN=$TOKEN" >> $GITHUB_ENV
 
       - name: Terraform init
         run: terraform init

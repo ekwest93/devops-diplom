@@ -43,6 +43,17 @@ jobs:
           yc config set service-account-key /tmp/sa-key.json
           echo "$(yc iam create-token)" | docker login --username iam --password-stdin cr.yandex
 
+      - name: Build local image
+        run: docker build -t diploma-app:test ./app
+
+      - name: Smoke test (container returns 200)
+        run: |
+          docker run -d --name app-test -p 8080:80 diploma-app:test
+          sleep 3
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/)
+          docker rm -f app-test
+          test "$code" = "200"
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
