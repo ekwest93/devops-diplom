@@ -160,16 +160,27 @@ Registry `diploma-registry` (id `crpisa48st8k0ugp6ong`) создан Terraform-�
 ---
 
 ## 4. Ingress и доступ на 80 порту
+Установлен Ingress-контроллер NGINX из Yandex Cloud Marketplace (образ из cr.yandex, т.к. registry.k8s.io недоступен).
 
-Установлен Ingress-контроллер NGINX из Yandex Cloud Marketplace.
 Внешний IP балансировщика: 46.243.211.5.
 
-| Ingress | Namespace | Host | Сервис |
-|---|---|---|---|
-| grafana | monitoring | grafana.diploma.local | kube-prometheus-grafana |
-| diploma-app | app | app.diploma.local | diploma-app |
+Маршрутизация:
 
-Оба доступны на 80 порту, возвращают HTTP 200.
+| Что | Путь | Namespace | Сервис |
+|---|---|---|---|
+| Приложение | / | app | diploma-app |
+| Grafana | /grafana | monitoring | kube-prometheus-grafana |
+
+Grafana настроена на работу с subpath (server.root_url = http://46.243.211.5/grafana/, serve_from_sub_path = true), поэтому открывается по пути /grafana без отдельного домена и без правки /etc/hosts.
+
+Ссылки (порт 80):
+
+- Grafana: http://46.243.211.5/grafana
+- Приложение: http://46.243.211.5
+
+Доступ к Grafana: логин admin. Пароль хранится в секрете kube-prometheus-grafana (namespace monitoring) и может быть получен командой:
+
+kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d
 
 ---
 
