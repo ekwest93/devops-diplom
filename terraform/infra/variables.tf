@@ -32,3 +32,10 @@ variable "registry_name" {
   type    = string
   default = "diploma-registry"
 }
+
+variable "yc_token" {
+  type        = string
+  description = "Yandex.Cloud IAM token"
+  sensitive   = true
+  default     = ""
+}

@@ -1,0 +1,67 @@
+name: Terraform - apply infra
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/infra/**'
+      - '.github/workflows/terraform.yml'
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform/infra
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yc CLI
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.4"
+
+      - name: Prepare SA key
+        run: |
+          echo '${{ secrets.TF_SA_KEY_JSON }}' > /tmp/tf-raw.txt
+          python3 - <<'PY'
+          text = open('/tmp/tf-raw.txt').read()
+          start = text.find('{')
+          end = text.rfind('}')
+          open('/tmp/tf-sa-key.json', 'w').write(text[start:end+1])
+          PY
+
+      - name: Configure yc profile
+        run: |
+          yc config profile create ci || true
+          yc config set service-account-key /tmp/tf-sa-key.json
+          yc config set folder-id b1grvjpek3up0eujvbn7
+          echo "YC_TOKEN=$(yc iam create-token)" >> $GITHUB_ENV
+
+      - name: Terraform init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.TF_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.TF_SECRET_KEY }}
+
+      - name: Terraform plan
+        run: terraform plan -out=tfplan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.TF_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.TF_SECRET_KEY }}
+          TF_VAR_yc_token: ${{ env.YC_TOKEN }}
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve tfplan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.TF_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.TF_SECRET_KEY }}
+          TF_VAR_yc_token: ${{ env.YC_TOKEN }}
