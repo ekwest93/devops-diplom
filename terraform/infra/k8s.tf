@@ -1,8 +1,10 @@
+# Сервисный аккаунт для K8s кластера.
 resource "yandex_iam_service_account" "k8s_sa" {
   folder_id = var.yc_folder_id
   name      = "diploma-k8s-sa"
 }
 
+# Роли для сервисного аккаунта K8s.
 resource "yandex_resourcemanager_folder_iam_member" "k8s_sa_editor" {
   folder_id = var.yc_folder_id
   role      = "editor"
@@ -15,26 +17,15 @@ resource "yandex_resourcemanager_folder_iam_member" "k8s_sa_registry" {
   member    = "serviceAccount:${yandex_iam_service_account.k8s_sa.id}"
 }
 
+# Managed Kubernetes кластер (зональный мастер).
 resource "yandex_kubernetes_cluster" "diploma" {
   name       = var.k8s_cluster_name
   network_id = yandex_vpc_network.diploma.id
 
   master {
-    regional {
-      region = "ru-central1"
-
-      location {
-        zone      = "ru-central1-a"
-        subnet_id = yandex_vpc_subnet.subnet_a.id
-      }
-      location {
-        zone      = "ru-central1-b"
-        subnet_id = yandex_vpc_subnet.subnet_b.id
-      }
-      location {
-        zone      = "ru-central1-d"
-        subnet_id = yandex_vpc_subnet.subnet_c.id
-      }
+    zonal {
+      zone      = "ru-central1-a"
+      subnet_id = yandex_vpc_subnet.subnet_a.id
     }
 
     public_ip = true
@@ -52,6 +43,7 @@ resource "yandex_kubernetes_cluster" "diploma" {
   ]
 }
 
+# Группа worker-нод (прерываемые ВМ).
 resource "yandex_kubernetes_node_group" "diploma_nodes" {
   cluster_id = yandex_kubernetes_cluster.diploma.id
   name       = var.k8s_node_group_name
@@ -65,6 +57,7 @@ resource "yandex_kubernetes_node_group" "diploma_nodes" {
       core_fraction = 20
     }
 
+    # Минимальный размер диска для ноды K8s — 30 ГБ.
     boot_disk {
       type = "network-hdd"
       size = 30
@@ -78,8 +71,6 @@ resource "yandex_kubernetes_node_group" "diploma_nodes" {
       nat = true
       subnet_ids = [
         yandex_vpc_subnet.subnet_a.id,
-        yandex_vpc_subnet.subnet_b.id,
-        yandex_vpc_subnet.subnet_c.id,
       ]
     }
   }
@@ -93,9 +84,6 @@ resource "yandex_kubernetes_node_group" "diploma_nodes" {
   allocation_policy {
     location {
       zone = "ru-central1-a"
-    }
-    location {
-      zone = "ru-central1-b"
     }
   }
 }

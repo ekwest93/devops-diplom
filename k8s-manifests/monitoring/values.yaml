@@ -1,0 +1,26 @@
+grafana:
+  service:
+    type: ClusterIP
+
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+  tls:
+    enabled: false
+
+prometheus-node-exporter:
+  image:
+    registry: cr.yandex
+    repository: crpisa48st8k0ugp6ong/prom/node-exporter
+    tag: v1.8.2
+    distroless: false
+
+prometheus:
+  prometheusSpec:
+    image:
+      registry: cr.yandex
+      repository: crpisa48st8k0ugp6ong/prom/prometheus
+      tag: v3.15.1-distroless
+      sha: ""
