@@ -1,0 +1,65 @@
+name: CD - release and deploy on tag
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  IMAGE_NAME: diploma-app
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install yc CLI
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Prepare SA key
+        run: |
+          echo '${{ secrets.YC_SA_KEY_JSON }}' > /tmp/raw.txt
+          python3 - <<'PY'
+          text = open('/tmp/raw.txt').read()
+          start = text.find('{')
+          end = text.rfind('}')
+          open('/tmp/sa-key.json', 'w').write(text[start:end+1])
+          PY
+
+      - name: Login to Yandex Container Registry
+        run: |
+          yc config profile create ci-profile || true
+          yc config set service-account-key /tmp/sa-key.json
+          echo "$(yc iam create-token)" | docker login --username iam --password-stdin cr.yandex
+
+      - name: Build and push release image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          platforms: linux/amd64
+          provenance: false
+          push: true
+          tags: |
+            cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo '${{ secrets.KUBE_CONFIG }}' > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl -n app set image deployment/diploma-app \
+            diploma-app=cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          kubectl -n app rollout status deployment/diploma-app --timeout=180s
