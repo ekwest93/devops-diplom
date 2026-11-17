@@ -31,12 +31,10 @@ jobs:
         run: |
           echo '${{ secrets.YC_SA_KEY_JSON }}' > /tmp/raw.txt
           python3 - <<'PY'
-          import re
           text = open('/tmp/raw.txt').read()
           start = text.find('{')
           end = text.rfind('}')
-          json_text = text[start:end+1]
-          open('/tmp/sa-key.json', 'w').write(json_text)
+          open('/tmp/sa-key.json', 'w').write(text[start:end+1])
           PY
 
       - name: Login to Yandex Container Registry
@@ -49,6 +47,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./app
+          platforms: linux/amd64
+          provenance: false
           push: true
           tags: |
             cr.yandex/${{ secrets.YC_REGISTRY_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
