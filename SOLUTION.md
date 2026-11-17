@@ -207,6 +207,7 @@ kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath="{.data.adm
 
 Особенности:
 - kubeconfig генерируется прямо на runner через yc managed-kubernetes cluster get-credentials.
+ Сервисный аккаунт для CI/CD - diploma-k8s-sa. Роли: container-registry.admin и editor.
 
 ### 5.3. Terraform pipeline
 
@@ -242,5 +243,43 @@ kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath="{.data.adm
 ## 8. Заключение
 
 В ходе практикума развёрнута облачная инфраструктура в Yandex.Cloud с помощью Terraform (S3 backend в Object Storage, отдельные папки для SA/bucket и основной инфраструктуры). Поднят Managed Kubernetes кластер с прерываемыми worker-нодами. Установлена система мониторинга kube-prometheus-stack (Prometheus, Grafana, Alertmanager, node-exporter, kube-state-metrics, operator). Настроены три пайплайна GitHub Actions: CI (сборка образа), CD (релиз и деплой по тегу), Terraform (apply по коммиту в main). Grafana и тестовое приложение доступны по HTTP на 80 порту через Ingress.
+
+---
+
+## 8.1. Развёртывание с нуля
+
+Порядок действий для полного пересоздания стенда (например, после terraform destroy):
+
+1. Применить инфраструктуру (SA, bucket, VPC, K8s, registry):
+
+   cd terraform/sa-and-bucket && terraform init && terraform apply -auto-approve
+   cd ../infra && terraform init && terraform apply -auto-approve
+
+2. Подключить kubectl к кластеру:
+
+   yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id b1grvjpek3up0eujvbn7
+
+3. Установить мониторинг (образы из cr.yandex):
+
+   helm install kube-prometheus prometheus-community/kube-prometheus-stack \
+     --namespace monitoring --create-namespace \
+     -f k8s-manifests/monitoring/values.yaml \
+     -f k8s-manifests/monitoring/grafana-values.yaml
+
+4. Установить Ingress-контроллер:
+
+   cd k8s-manifests/ingress && \
+   helm install ingress-nginx ./ingress-nginx --namespace ingress-nginx --create-namespace \
+     --set controller.admissionWebhooks.enabled=false
+
+5. Применить манифесты приложения:
+
+   kubectl create namespace app
+   kubectl apply -f k8s-manifests/app/
+   kubectl apply -f k8s-manifests/monitoring/grafana-ingress.yaml
+
+6. Проверить, что поды Running, и открыть приложение и Grafana по IP балансировщика.
+
+Для terraform destroy и terraform apply ручные действия не требуются: state хранится в S3, все ресурсы описаны в конфигурации.
 
 ---
