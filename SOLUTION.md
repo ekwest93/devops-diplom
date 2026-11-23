@@ -192,15 +192,19 @@ Registry `diploma-registry` (id `crpisa48st8k0ugp6ong`) создан Terraform. 
 
 ```text
 $ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
-+----------------------+---------------------+----------------------------------+------------------+
-|          ID          |       CREATED       |               NAME               |      TAGS        |
-+----------------------+---------------------+----------------------------------+------------------+
-| crp95t75alm0s7pn39lv | 2026-11-17 13:07:43 | crpisa48st8k0ugp6ong/diploma-app | 7dea...f, latest |
-| crpjmk018hdsaocgor5j | 2026-11-17 11:16:15 | crpisa48st8k0ugp6ong/diploma-app | v1.0.3           |
-| crps3oqhf965nnpf8n9e | 2026-11-17 11:13:23 | crpisa48st8k0ugp6ong/diploma-app | v1.0.2           |
-| crpl185u7v0c1l9to900 | 2026-11-17 11:11:02 | crpisa48st8k0ugp6ong/diploma-app | v1.0.1           |
-| crprdru1j42d0dgp680h | 2026-11-17 09:36:15 | crpisa48st8k0ugp6ong/diploma-app | v1.0.0           |
-+----------------------+---------------------+----------------------------------+------------------+
+$ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
++----------------------+---------------------+----------------------------------+-------------------------------------------------------------------------+-----------------+
+|          ID          |       CREATED       |               NAME               |                                  TAGS                                   | COMPRESSED SIZE |
++----------------------+---------------------+----------------------------------+-------------------------------------------------------------------------+-----------------+
+| crp95t75alm0s7pn39lv | 2026-11-17 13:07:43 | crpisa48st8k0ugp6ong/diploma-app | 7dea5952a6013a301bee804912719e1ebca8893f,                               | 20.0 MB         |
+|                      |                     |                                  | latest                                                                  |                 |
+| crpjmk018hdsaocgor5j | 2026-11-17 11:16:15 | crpisa48st8k0ugp6ong/diploma-app | v1.0.3                                                                  | 20.0 MB         |
+| crps3oqhf965nnpf8n9e | 2026-11-17 11:13:23 | crpisa48st8k0ugp6ong/diploma-app | v1.0.2                                                                  | 20.0 MB         |
+| crpl185u7v0c1l9to900 | 2026-11-17 11:11:02 | crpisa48st8k0ugp6ong/diploma-app | v1.0.1                                                                  | 20.0 MB         |
+| crp7ajpvfvj6j031pklq | 2026-11-17 11:06:13 | crpisa48st8k0ugp6ong/diploma-app | 2a077ec4bb2973045ed95098c577ca273147a2f3                                | 20.0 MB         |
+| crpj9vi6rpu2ranon23u | 2026-11-17 11:03:27 | crpisa48st8k0ugp6ong/diploma-app | sha256:b5795c2fee34b02a05fe5a4f7f6895715fb98dd8d653b6f2ff5cd3099bda4564 | 20.0 MB         |
+| crprdru1j42d0dgp680h | 2026-11-17 09:36:15 | crpisa48st8k0ugp6ong/diploma-app | v1.0.0                                                                  | 20.0 MB         |
++----------------------+---------------------+----------------------------------+-------------------------------------------------------------------------+-----------------+
 ```
 <img width="1852" height="710" alt="image" src="https://github.com/user-attachments/assets/1bc13d7e-2954-4d20-a76d-3a3be823ebb0" />
 <img width="1111" height="465" alt="image" src="https://github.com/user-attachments/assets/0cd66391-87f4-437a-88c1-f95bc00c573e" />
