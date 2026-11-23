@@ -323,8 +323,7 @@ $ curl -s -o /dev/null -w "%{http_code}\n" http://89.169.139.101/
 $ curl -s -o /dev/null -w "%{http_code}\n" http://89.169.139.101/grafana/
 302
 ```
-
-
+<img width="974" height="299" alt="image" src="https://github.com/user-attachments/assets/56a05a0a-a61d-49ec-bdfb-dabd39f1e31e" />
 
 Приложение отдаёт код 200, Grafana отвечает редиректом (302) на страницу входа /grafana/login.
 
