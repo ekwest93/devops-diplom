@@ -276,30 +276,74 @@ $ curl -s http://localhost:8080 | head -10
 ---
 
 ## 4. Ingress и доступ на 80 порту
-Установлен Ingress-контроллер NGINX из Yandex Cloud Marketplace (образ из cr.yandex, т.к. registry.k8s.io недоступен).
+Установлен Ingress-контроллер ingress-nginx (Helm-чарт из репозитория, k8s-manifests/ingress). Образ контроллера взят из Yandex Container Registry, так как registry.k8s.io недоступен из РФ.
 
-Внешний IP балансировщика: 46.243.211.5.
+```bash
+cd k8s-manifests/ingress
+helm install ingress-nginx ./ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --set controller.admissionWebhooks.enabled=false
+```
 
-Маршрутизация:
+**Проверка (вывод команды):**
 
-| Что | Путь | Namespace | Сервис |
-|---|---|---|---|
-| Приложение | / | app | diploma-app |
-| Grafana | /grafana | monitoring | kube-prometheus-grafana |
+```text
+$ kubectl get svc -n ingress-nginx
+NAME                       TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)                      AGE
+ingress-nginx-controller   LoadBalancer   10.96.232.101   89.169.139.101   80:31988/TCP,443:31485/TCP   22s
+```
+<img width="1596" height="90" alt="image" src="https://github.com/user-attachments/assets/bb583757-4b40-4d2d-8dfa-325b152048fe" />
 
-Grafana настроена на работу с subpath (server.root_url = http://46.243.211.5/grafana/, serve_from_sub_path = true), поэтому открывается по пути /grafana без отдельного домена и без правки /etc/hosts.
+Внешний IP балансировщика: 89.169.139.101.
+
+Тестовое приложение развёрнуто манифестами из k8s-manifests/app (Deployment на 2 реплики, Service, Ingress) в namespace app. Grafana вынесена на путь /grafana через ingress (k8s-manifests/monitoring/grafana-ingress.yaml). Grafana работает с subpath: server.root_url = http://89.169.139.101/grafana/, serve_from_sub_path = true, поэтому отдельный домен и правка /etc/hosts не нужны.
+
+```bash
+kubectl create namespace app
+kubectl apply -f k8s-manifests/app/
+kubectl apply -f k8s-manifests/monitoring/grafana-ingress.yaml
+```
+
+**Проверка (вывод команды):**
+
+```text
+$ kubectl get pods -n app
+NAME                           READY   STATUS    RESTARTS   AGE
+diploma-app-5c5877c5b4-qmrfx   1/1     Running   0          71s
+diploma-app-5c5877c5b4-xfvqt   1/1     Running   0          71s
+
+$ kubectl get ingress -A
+NAMESPACE    NAME             CLASS   HOSTS                       ADDRESS          PORTS   AGE
+app          diploma-app      nginx   app.89.169.139.101.nip.io   89.169.139.101   80      79s
+app          diploma-app-ip   nginx   *                           89.169.139.101   80      80s
+monitoring   grafana          nginx   *                           89.169.139.101   80      21s
+
+$ curl -s -o /dev/null -w "%{http_code}\n" http://89.169.139.101/
+200
+$ curl -s -o /dev/null -w "%{http_code}\n" http://89.169.139.101/grafana/
+302
+```
+
+
+
+Приложение отдаёт код 200, Grafana отвечает редиректом (302) на страницу входа /grafana/login.
+
+Приложение в браузере (http://89.169.139.101/):
+
+<img width="974" height="243" alt="image" src="https://github.com/user-attachments/assets/57461d92-92ec-455e-a018-f5450ff3bae3" />
+
+Grafana в браузере (http://89.169.139.101/grafana/), дашборд с метриками кластера:
+<img width="974" height="444" alt="image" src="https://github.com/user-attachments/assets/f7c28d1a-fc0a-400e-8f3f-189606a4aca5" />
+
+
+Доступ к Grafana: логин admin, пароль DzY4SwBOsxTIGLQV5WJMDjWtdqscswXok22UftZ7 
 
 Ссылки (порт 80):
 
-- Grafana: http://46.243.211.5/grafana
-- Приложение: http://46.243.211.5
-
-Доступ к Grafana: логин admin. Пароль хранится в секрете kube-prometheus-grafana (namespace monitoring) и может быть получен командой:
-
-kubectl get secret -n monitoring kube-prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d
+- Grafana: http://89.169.139.101/grafana/
+- Приложение: http://89.169.139.101/
 
 ---
-
 ## 5. CI/CD на GitHub Actions
 
 В репозитории настроены три пайплайна.
