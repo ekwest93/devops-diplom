@@ -145,6 +145,7 @@ $ yc vpc subnet list --folder-id b1grvjpek3up0eujvbn7
 
 ### 1.4. Создание Managed Kubernetes кластера
 
+
 Кластер `diploma-k8s` (Managed Service for Kubernetes), мастер зональный в `ru-central1-a`, `public_ip = true`, release channel `RAPID`, network policy provider `CALICO`.
 
 Группа узлов `diploma-k8s-nodes`:
@@ -158,38 +159,80 @@ $ yc vpc subnet list --folder-id b1grvjpek3up0eujvbn7
 | Диск | network-hdd 30 ГБ |
 | Прерываемые | да (preemptible) |
 | Публичный IP | да (nat) |
-| Зона | ru-central1-a |
+| Зоны | ru-central1-a, ru-central1-d |
 
 Подключение kubectl:
 
 yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id b1grvjpek3up0eujvbn7
-kubectl get nodes
 
-Обе ноды в статусе Ready.
+**Проверка (вывод команды):**
+
+```text
+$ kubectl get nodes -o wide
+NAME                        STATUS   ROLES    AGE   VERSION   INTERNAL-IP   EXTERNAL-IP    OS-IMAGE           KERNEL-VERSION
+cl18fiep661amtk292a8-ybav   Ready    <none>   72m   v1.35.1   10.30.0.31    153.51.169.66  Ubuntu 22.04.5 LTS  5.15.0-191-generic
+cl18fiep661amtk292a8-yzap   Ready    <none>   73m   v1.35.1   10.10.0.23    89.169.141.62  Ubuntu 22.04.5 LTS  5.15.0-191-generic
+```
+<img width="1835" height="200" alt="image" src="https://github.com/user-attachments/assets/fd2847e2-21f7-4fd9-8b3d-7027a86f854b" />
+
+> **Важно (отклонение от задания):**
+> По заданию требуется региональный мастер с нодами в трёх подсетях. Развернуть его не удалось: зона ru-central1-b отключена для новых ресурсов (ошибка API: zone ru-central1-b is disabled. No new resources could be allocated), а запрос квоты на HDD-диски в зонах ru-central1-b и ru-central1-e отклонён поддержкой. Поэтому мастер сделан зональным в ru-central1-a, ноды размещены в зонах a и d. Это ограничение облака, а не конфигурации.
 
 ---
 
 ### 1.5. Создание Yandex Container Registry
 
-Registry `diploma-registry` (id `crpisa48st8k0ugp6ong`) создан Terraform-ресурсом `yandex_container_registry`. В нём хранятся образы:
+Registry `diploma-registry` (id `crpisa48st8k0ugp6ong`) создан Terraform. В нём лежат образы приложения:
 
-- `crpisa48st8k0ugp6ong/diploma-app` — тестовое приложение (теги `v1.0.0`, `v1.0.3`, `latest`, sha-коммиты)
-- `crpisa48st8k0ugp6ong/prom/node-exporter` — зеркало node-exporter
-- `crpisa48st8k0ugp6ong/prom/prometheus` — зеркало Prometheus
+- cr.yandex/crpisa48st8k0ugp6ong/diploma-app - теги v1.0.0, v1.0.1, v1.0.2, v1.0.3, latest.
 
-Зеркала понадобились потому, что `quay.io` и `registry.k8s.io` недоступны из РФ, а Docker Hub нестабилен с нод кластера.
+Также там лежат образы мониторинга (node-exporter, Prometheus, Grafana), потому что они не тянутся напрямую из РФ.
+
+**Проверка (вывод команды):**
+
+```text
+$ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
++----------------------+---------------------+----------------------------------+------------------+
+|          ID          |       CREATED       |               NAME               |      TAGS        |
++----------------------+---------------------+----------------------------------+------------------+
+| crp95t75alm0s7pn39lv | 2026-11-17 13:07:43 | crpisa48st8k0ugp6ong/diploma-app | 7dea...f, latest |
+| crpjmk018hdsaocgor5j | 2026-11-17 11:16:15 | crpisa48st8k0ugp6ong/diploma-app | v1.0.3           |
+| crps3oqhf965nnpf8n9e | 2026-11-17 11:13:23 | crpisa48st8k0ugp6ong/diploma-app | v1.0.2           |
+| crpl185u7v0c1l9to900 | 2026-11-17 11:11:02 | crpisa48st8k0ugp6ong/diploma-app | v1.0.1           |
+| crprdru1j42d0dgp680h | 2026-11-17 09:36:15 | crpisa48st8k0ugp6ong/diploma-app | v1.0.0           |
++----------------------+---------------------+----------------------------------+------------------+
+```
+<img width="1852" height="710" alt="image" src="https://github.com/user-attachments/assets/1bc13d7e-2954-4d20-a76d-3a3be823ebb0" />
+<img width="1111" height="465" alt="image" src="https://github.com/user-attachments/assets/0cd66391-87f4-437a-88c1-f95bc00c573e" />
 
 ---
 
 ## 2. Система мониторинга
 
-Установлен kube-prometheus-stack через Helm в namespace monitoring.
-Все поды в namespace monitoring в статусе Running.
-Финальные values зафиксированы в k8s-manifests/monitoring/values.yaml.
+Установлен kube-prometheus-stack через Helm в namespace monitoring:
 
-Особенности:
-- prometheusOperator.tls.enabled=false и admissionWebhooks.enabled=false, иначе deployment оператора не мог смонтировать секрет.
-- node-exporter и Prometheus используют образы из Yandex Container Registry (зеркала), потому что quay.io недоступен из РФ.
+helm install kube-prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace \
+  -f k8s-manifests/monitoring/values.yaml
+
+**Проверка (вывод команды):**
+
+```text
+$ kubectl get pods -n monitoring
+NAME                                                     READY   STATUS    RESTARTS   AGE
+alertmanager-kube-prometheus-kube-prome-alertmanager-0   2/2     Running   0          118s
+kube-prometheus-grafana-78f975c6db-x8l6g                 3/3     Running   0          2m5s
+kube-prometheus-kube-prome-operator-759d85449c-thlxp     1/1     Running   0          2m5s
+kube-prometheus-kube-state-metrics-857775fbc5-bj2qb      1/1     Running   0          2m5s
+kube-prometheus-prometheus-node-exporter-dzkxg           1/1     Running   0          2m5s
+kube-prometheus-prometheus-node-exporter-rct29           1/1     Running   0          2m5s
+prometheus-kube-prometheus-kube-prome-prometheus-0       2/2     Running   0          119s
+```
+<img width="1313" height="256" alt="image" src="https://github.com/user-attachments/assets/230e0d73-c77e-4f0b-a015-165ee82a8752" />
+
+Все поды в namespace monitoring в статусе Running: Prometheus, Alertmanager, Grafana, node-exporter, kube-state-metrics, operator.
+
+Образы node-exporter, Prometheus и Grafana взяты из Yandex Container Registry, так как quay.io и registry.k8s.io недоступны из РФ.
 
 ---
 
