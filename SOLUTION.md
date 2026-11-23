@@ -240,12 +240,34 @@ prometheus-kube-prometheus-kube-prome-prometheus-0       2/2     Running   0    
 
 Приложение - статическая страница, отдаваемая nginx.
 
-Файлы:
-- app/web-app/index.html - HTML-страница
-- app/nginx/nginx.conf - конфигурация nginx
-- app/Dockerfile - образ на базе nginx:1.27-alpine
+Файлы в репозитории:
+- app/web-app/index.html - HTML-страница;
+- app/nginx/nginx.conf - конфигурация nginx;
+- app/Dockerfile - образ на базе nginx:1.27-alpine.
 
-Образ залит в Yandex Container Registry: cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.0
+Сборка и локальная проверка:
+
+cd ~/devops-diplom/app
+docker build -t diploma-app:local .
+docker run -d --name diploma-app-test -p 8080:80 diploma-app:local
+curl -s http://localhost:8080
+
+**Проверка (вывод команды):**
+
+```text
+$ curl -s http://localhost:8080 | head -10
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>DevOps Diploma App</title>
+</head>
+<body>
+  <h1>DevOps Diploma</h1>
+  <p>Плевако С.В.</p>
+  <p>Тестовое приложение работает.</p>
+```
+<img width="1834" height="869" alt="image" src="https://github.com/user-attachments/assets/d52894b6-4ed6-4671-af74-56d2aa717ae4" />
 
 ---
 
