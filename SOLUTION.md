@@ -49,6 +49,7 @@ devops-diplom/
 4. Создание Managed Kubernetes кластера.
 5. Создание Yandex Container Registry.
 
+
 ---
 
 ### 1.1. Создание сервисного аккаунта
@@ -62,13 +63,27 @@ devops-diplom/
 | `storage.admin` | работа с S3 bucket |
 | `kms.keys.encrypterDecrypter` | шифрование данных в бакете |
 
-**Результат:**
+**Проверка (вывод команд):**
 
-Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
+```text
+$ yc iam service-account list
++----------------------+-----------------------+--------+---------------------+----------------------+
+|          ID          |         NAME          | LABELS |     CREATED AT      | LAST AUTHENTICATED AT|
++----------------------+-----------------------+--------+---------------------+----------------------+
+| ajefecgneainr4p6e1uu | diploma-terraform-sa  |        | 2026-10-08 11:16:40 | 2026-11-17 13:10:00  |
+| ajeu91db39pluuqe74fn | diploma-k8s-sa        |        | 2026-10-09 06:59:52 | 2026-11-17 13:00:00  |
++----------------------+-----------------------+--------+---------------------+----------------------+
 
-**Скриншот:**
+$ yc iam service-account get diploma-terraform-sa
+id: ajefecgneainr4p6e1uu
+folder_id: b1grvjpek3up0eujvbn7
+created_at: "2026-10-08T11:16:40Z"
+name: diploma-terraform-sa
+description: Service account for Terraform (diploma)
+```
 
-![Сервисный аккаунт](images/sa-created.png)
+<img width="974" height="149" alt="image" src="https://github.com/user-attachments/assets/29fddd00-2090-4223-a8c1-187d1bc9eb4e" />
+
 
 ---
 
@@ -77,23 +92,55 @@ Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
 Создан S3 bucket `devops-diplom-tfstate-eujvbn7` для хранения `.tfstate`.
 Анонимный доступ запрещён.
 
-**Скриншот:**
+**Проверка (вывод команды):**
 
-![Бакет](images/bucket-created.png)
+```text
+$ yc storage bucket list
++-------------------------------+----------------------+----------+-----------------------+---------------------+
+|             NAME              |      FOLDER ID       | MAX SIZE | DEFAULT STORAGE CLASS |     CREATED AT      |
++-------------------------------+----------------------+----------+-----------------------+---------------------+
+| devops-diplom-tfstate-eujvbn7 | b1grvjpek3up0eujvbn7 |        0 | STANDARD              | 2026-10-08 11:16:45 |
++-------------------------------+----------------------+----------+-----------------------+---------------------+
+```
+<img width="974" height="204" alt="image" src="https://github.com/user-attachments/assets/65252fea-edb8-4b9e-bf7e-32b7d4cef960" />
+
 
 ---
 
 ### 1.3. Создание VPC и подсетей
 
-VPC `diploma-vpc` и две подсети в разных зонах доступности:
+VPC `diploma-vpc` (id `enpgu14895i2mvk06njg`) и три подсети в разных зонах доступности:
 
 | Подсеть | Зона | CIDR |
 |---|---|---|
 | diploma-vpc-subnet-a | ru-central1-a | 10.10.0.0/24 |
+| diploma-vpc-subnet-b | ru-central1-b | 10.20.0.0/24 |
 | diploma-vpc-subnet-c | ru-central1-d | 10.30.0.0/24 |
 
-Изначально планировались три подсети (a, b, d), но в октябре 2026 в Yandex.Cloud произошла авария, зона `ru-central1-b` была отключена. Поэтому подсеть в зоне b не создавалась, а мастер Kubernetes сделан зональным в `ru-central1-a` (региональный мастер требует ровно три зоны). Это осознанное отклонение от типовой схемы, продиктованное состоянием облака.
+**Проверка (вывод команд):**
 
+```text
+$ yc vpc network list
++----------------------+-------------+
+|          ID          |    NAME     |
++----------------------+-------------+
+| enpgu14895i2mvk06njg | diploma-vpc |
++----------------------+-------------+
+
+$ yc vpc subnet list --folder-id b1grvjpek3up0eujvbn7
++----------------------+----------------------+----------------------+----------------+---------------+
+|          ID          |         NAME         |      NETWORK ID      |      ZONE      |     RANGE     |
++----------------------+----------------------+----------------------+----------------+---------------+
+| e9bcu82u5f4sjs6ju3kg | diploma-vpc-subnet-a | enpgu14895i2mvk06njg | ru-central1-a  | [10.10.0.0/24]|
+| e2l6h2pg58da2lio8f9r | diploma-vpc-subnet-b | enpgu14895i2mvk06njg | ru-central1-b  | [10.20.0.0/24]|
+| fl8gunj1d952jjlqpr7c | diploma-vpc-subnet-c | enpgu14895i2mvk06njg | ru-central1-d  | [10.30.0.0/24]|
++----------------------+----------------------+----------------------+----------------+---------------+
+```
+
+<img width="1552" height="479" alt="image" src="https://github.com/user-attachments/assets/9e9f0678-7a67-4d0e-8de3-fed3e4c65ffc" />
+
+> **Важно (отклонение от задания):**
+> Подсеть в зоне ru-central1-b создана, но развернуть региональный мастер не удалось: зона ru-central1-b отключена для новых ресурсов (ошибка API: zone ru-central1-b is disabled. No new resources could be allocated), а запрос квоты на HDD-диски в зонах ru-central1-b и ru-central1-e отклонён. Региональный мастер требует ровно три зоны, поэтому мастер Kubernetes сделан зональным в ru-central1-a, а ноды размещены в зонах a и d.
 ---
 
 ### 1.4. Создание Managed Kubernetes кластера
