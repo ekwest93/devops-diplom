@@ -192,7 +192,7 @@ Registry `diploma-registry` (id `crpisa48st8k0ugp6ong`) создан Terraform. 
 
 ```text
 $ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
-$ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
+
 +----------------------+---------------------+----------------------------------+-------------------------------------------------------------------------+-----------------+
 |          ID          |       CREATED       |               NAME               |                                  TAGS                                   | COMPRESSED SIZE |
 +----------------------+---------------------+----------------------------------+-------------------------------------------------------------------------+-----------------+
