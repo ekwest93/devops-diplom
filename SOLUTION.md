@@ -387,7 +387,7 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 
 <img width="1293" height="626" alt="image" src="https://github.com/user-attachments/assets/bfe09910-40bc-4fb9-894c-d6166a0c9e09" />
 
-Сервисный аккаунт для CI/CD - diploma-k8s-sa. Роли: container-registry.admin (push образов) и editor (доступ к кластеру).
+Сервисные аккаунты: Terraform pipeline использует diploma-terraform-sa (секреты TF_SA_KEY_JSON, TF_ACCESS_KEY, TF_SECRET_KEY), CI/CD приложения использует ключ из секрета YC_SA_KEY_JSON с ролями container-registry.admin (push образов) и editor (доступ к кластеру).
 
 Секреты репозитория: YC_SA_KEY_JSON, YC_REGISTRY_ID, TF_SA_KEY_JSON, TF_ACCESS_KEY, TF_SECRET_KEY.
 
@@ -396,6 +396,7 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 ---
 
 ## 6. Проверка полного цикла
+
 Проверено, что весь цикл работает на актуальном кластере:
 
 1. CI: коммит в main - CI собирает образ с тегами sha и latest и пушит его в Yandex Container Registry.
