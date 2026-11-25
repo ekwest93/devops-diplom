@@ -1,4 +1,4 @@
-Дипломный практикум в Yandex.Cloud - решение
+# Дипломный практикум в Yandex.Cloud - решение
 
 **Автор:** Плевако С.В.
 
@@ -162,8 +162,9 @@ $ yc vpc subnet list --folder-id b1grvjpek3up0eujvbn7
 | Зоны | ru-central1-a, ru-central1-d |
 
 Подключение kubectl:
-
+```bash
 yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id b1grvjpek3up0eujvbn7
+```
 
 **Проверка (вывод команды):**
 
@@ -174,9 +175,11 @@ cl18fiep661amtk292a8-ybav   Ready    <none>   72m   v1.35.1   10.30.0.31    153.
 cl18fiep661amtk292a8-yzap   Ready    <none>   73m   v1.35.1   10.10.0.23    89.169.141.62  Ubuntu 22.04.5 LTS  5.15.0-191-generic
 ```
 <img width="1835" height="200" alt="image" src="https://github.com/user-attachments/assets/fd2847e2-21f7-4fd9-8b3d-7027a86f854b" />
+
 ```text
-get pods --all-namespaces
+$ kubectl get pods --all-namespaces
 ```
+
 <img width="1662" height="848" alt="image" src="https://github.com/user-attachments/assets/3c6045dd-6122-4f2b-8acc-4957f9e2e768" />
 
 
@@ -189,7 +192,7 @@ get pods --all-namespaces
 
 Registry `diploma-registry` (id `crpisa48st8k0ugp6ong`) создан Terraform. В нём лежат образы приложения:
 
-- cr.yandex/crpisa48st8k0ugp6ong/diploma-app - теги v1.0.0, v1.0.1, v1.0.2, v1.0.3, latest.
+- cr.yandex/crpisa48st8k0ugp6ong/diploma-app - теги v1.0.0, v1.0.1, v1.0.2, v1.0.3, v1.0.4, latest.
 
 Также там лежат образы мониторинга (node-exporter, Prometheus, Grafana), потому что они не тянутся напрямую из РФ.
 
@@ -220,9 +223,11 @@ $ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
 
 Установлен kube-prometheus-stack через Helm в namespace monitoring:
 
+```bash
 helm install kube-prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring --create-namespace \
   -f k8s-manifests/monitoring/values.yaml
+```
 
 **Проверка (вывод команды):**
 
@@ -411,41 +416,59 @@ cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4
 
 В ходе практикума развёрнута облачная инфраструктура в Yandex.Cloud с помощью Terraform (S3 backend в Object Storage, отдельные папки для SA/bucket и основной инфраструктуры). Поднят Managed Kubernetes кластер с прерываемыми worker-нодами. Установлена система мониторинга kube-prometheus-stack (Prometheus, Grafana, Alertmanager, node-exporter, kube-state-metrics, operator). Настроены три пайплайна GitHub Actions: CI (сборка образа), CD (релиз и деплой по тегу), Terraform (apply по коммиту в main). Grafana и тестовое приложение доступны по HTTP на 80 порту через Ingress.
 
+Образ приложения: cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4 (реестр приватный, наличие образов подтверждено скриншотами в разделе 1.5).
+
+Ссылки: приложение http://89.169.139.101/, Grafana http://89.169.139.101/grafana/ (данные доступа указаны в разделе 4).
+
 ---
 
 ## 8. Развёртывание с нуля
 
-Порядок действий для полного пересоздания стенда (например, после terraform destroy):
+Порядок действий для пересоздания стенда после terraform destroy основной инфраструктуры (каталог sa-and-bucket с сервисным аккаунтом и бакетом не удаляется):
 
-1. Применить инфраструктуру (SA, bucket, VPC, K8s, registry):
+1. Применить инфраструктуру (VPC, Kubernetes, registry):
 
-   cd terraform/sa-and-bucket && terraform init && terraform apply -auto-approve
-   cd ../infra && terraform init && terraform apply -auto-approve
+```bash
+cd terraform/infra && terraform init && terraform apply -auto-approve
+```
 
 2. Подключить kubectl к кластеру:
 
-   yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id b1grvjpek3up0eujvbn7
+```bash
+yc managed-kubernetes cluster get-credentials diploma-k8s --external --force --folder-id b1grvjpek3up0eujvbn7
+```
 
-3. Установить мониторинг (образы из cr.yandex):
+3. Установить Ingress-контроллер и получить внешний IP:
 
-   helm install kube-prometheus prometheus-community/kube-prometheus-stack \
-     --namespace monitoring --create-namespace \
-     -f k8s-manifests/monitoring/values.yaml \
-     -f k8s-manifests/monitoring/grafana-values.yaml
+```bash
+cd k8s-manifests/ingress
+helm install ingress-nginx ./ingress-nginx --namespace ingress-nginx --create-namespace \
+  --set controller.admissionWebhooks.enabled=false
+kubectl get svc -n ingress-nginx
+```
 
-4. Установить Ingress-контроллер:
+4. Подставить новый IP в k8s-manifests/monitoring/grafana-values.yaml и k8s-manifests/app/ingress.yaml.
 
-   cd k8s-manifests/ingress && \
-   helm install ingress-nginx ./ingress-nginx --namespace ingress-nginx --create-namespace \
-     --set controller.admissionWebhooks.enabled=false
+5. Установить мониторинг (образы из cr.yandex):
 
-5. Применить манифесты приложения:
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install kube-prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace \
+  -f k8s-manifests/monitoring/values.yaml \
+  -f k8s-manifests/monitoring/grafana-values.yaml
+```
 
-   kubectl create namespace app
-   kubectl apply -f k8s-manifests/app/
-   kubectl apply -f k8s-manifests/monitoring/grafana-ingress.yaml
+6. Применить манифесты приложения и ingress Grafana:
 
-6. Проверить, что поды Running, и открыть приложение и Grafana по IP балансировщика.
+```bash
+kubectl create namespace app
+kubectl apply -f k8s-manifests/app/
+kubectl apply -f k8s-manifests/monitoring/grafana-ingress.yaml
+```
+
+7. Проверить, что поды в статусе Running, и открыть приложение и Grafana по IP балансировщика.
 
 Для terraform destroy и terraform apply ручные действия не требуются: state хранится в S3, все ресурсы описаны в конфигурации.
 
