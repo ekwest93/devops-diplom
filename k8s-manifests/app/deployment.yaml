@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: diploma-app
-          image: cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.0
+          image: cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4
           ports:
             - containerPort: 80
           resources:

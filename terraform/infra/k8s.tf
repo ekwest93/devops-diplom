@@ -4,7 +4,6 @@ resource "yandex_iam_service_account" "k8s_sa" {
   name      = "diploma-k8s-sa"
 }
 
-# Роли для сервисного аккаунта K8s.
 resource "yandex_resourcemanager_folder_iam_member" "k8s_sa_editor" {
   folder_id = var.yc_folder_id
   role      = "editor"
@@ -17,7 +16,7 @@ resource "yandex_resourcemanager_folder_iam_member" "k8s_sa_registry" {
   member    = "serviceAccount:${yandex_iam_service_account.k8s_sa.id}"
 }
 
-# Managed Kubernetes кластер (зональный мастер).
+# Managed Kubernetes кластер (зональный мастер в ru-central1-a).
 resource "yandex_kubernetes_cluster" "diploma" {
   name       = var.k8s_cluster_name
   network_id = yandex_vpc_network.diploma.id
@@ -43,7 +42,7 @@ resource "yandex_kubernetes_cluster" "diploma" {
   ]
 }
 
-# Группа worker-нод (прерываемые ВМ).
+# Группа узлов: 2 ноды, зоны a и d.
 resource "yandex_kubernetes_node_group" "diploma_nodes" {
   cluster_id = yandex_kubernetes_cluster.diploma.id
   name       = var.k8s_node_group_name
@@ -57,7 +56,6 @@ resource "yandex_kubernetes_node_group" "diploma_nodes" {
       core_fraction = 20
     }
 
-    # Минимальный размер диска для ноды K8s — 30 ГБ.
     boot_disk {
       type = "network-hdd"
       size = 30
@@ -71,6 +69,7 @@ resource "yandex_kubernetes_node_group" "diploma_nodes" {
       nat = true
       subnet_ids = [
         yandex_vpc_subnet.subnet_a.id,
+        yandex_vpc_subnet.subnet_c.id,
       ]
     }
   }
@@ -84,6 +83,9 @@ resource "yandex_kubernetes_node_group" "diploma_nodes" {
   allocation_policy {
     location {
       zone = "ru-central1-a"
+    }
+    location {
+      zone = "ru-central1-d"
     }
   }
 }
