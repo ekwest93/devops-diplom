@@ -354,6 +354,7 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 
 ### 5.1. CI - сборка образа при коммите
 
+Приложение лежит в каталоге `app/` этого репозитория (монорепозиторий), поэтому сборка запускается при любом коммите в main, затрагивающем `app/`.
 Файл [.github/workflows/ci.yml](https://github.com/ekwest93/devops-diplom/blob/main/.github/workflows/ci.yml).
 Триггер: push в main при изменениях в app/ или в самом workflow.
 
@@ -370,6 +371,7 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 
 ### 5.3. Terraform pipeline
 
+Вместо Atlantis используется альтернативный вариант из задания: автоматический запуск Terraform из GitHub Actions при коммите в main. Запуск ограничен изменениями в `terraform/infra/`, чтобы правки документации и приложения не вызывали лишнего `apply`.
 Файл [.github/workflows/terraform.yml](https://github.com/ekwest93/devops-diplom/blob/main/.github/workflows/terraform.yml).
 Триггер: push в main при изменениях в terraform/infra/.
 
@@ -405,26 +407,13 @@ cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4
 
 ---
 
-## 7. Отклонения от типовой схемы
-
-1. Зональный мастер Kubernetes в ru-central1-a вместо регионального.
-   Причина: в октябре 2026 зона ru-central1-b была отключена после аварии в Yandex.Cloud, а региональный мастер требует ровно три зоны. Подсеть в зоне b не создавалась.
-
-2. Образы node-exporter и Prometheus взяты из Yandex Container Registry (зеркала).
-   Причина: quay.io недоступен из РФ, registry.k8s.io также недоступен (CDN таймаутит). Docker Hub нестабилен с нод кластера.
-
-3. Ingress-контроллер NGINX взят из Yandex Cloud Marketplace.
-   Причина: registry.k8s.io недоступен, образ контроллера из Marketplace лежит в cr.yandex и доступен нодам.
-
----
-
-## 8. Заключение
+## 7. Заключение
 
 В ходе практикума развёрнута облачная инфраструктура в Yandex.Cloud с помощью Terraform (S3 backend в Object Storage, отдельные папки для SA/bucket и основной инфраструктуры). Поднят Managed Kubernetes кластер с прерываемыми worker-нодами. Установлена система мониторинга kube-prometheus-stack (Prometheus, Grafana, Alertmanager, node-exporter, kube-state-metrics, operator). Настроены три пайплайна GitHub Actions: CI (сборка образа), CD (релиз и деплой по тегу), Terraform (apply по коммиту в main). Grafana и тестовое приложение доступны по HTTP на 80 порту через Ingress.
 
 ---
 
-## 8.1. Развёртывание с нуля
+## 8. Развёртывание с нуля
 
 Порядок действий для полного пересоздания стенда (например, после terraform destroy):
 
