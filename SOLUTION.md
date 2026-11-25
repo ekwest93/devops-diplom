@@ -174,6 +174,11 @@ cl18fiep661amtk292a8-ybav   Ready    <none>   72m   v1.35.1   10.30.0.31    153.
 cl18fiep661amtk292a8-yzap   Ready    <none>   73m   v1.35.1   10.10.0.23    89.169.141.62  Ubuntu 22.04.5 LTS  5.15.0-191-generic
 ```
 <img width="1835" height="200" alt="image" src="https://github.com/user-attachments/assets/fd2847e2-21f7-4fd9-8b3d-7027a86f854b" />
+```text
+get pods --all-namespaces
+```
+<img width="1662" height="848" alt="image" src="https://github.com/user-attachments/assets/3c6045dd-6122-4f2b-8acc-4957f9e2e768" />
+
 
 > **Важно (отклонение от задания):**
 > По заданию требуется региональный мастер с нодами в трёх подсетях. Развернуть его не удалось: зона ru-central1-b отключена для новых ресурсов (ошибка API: zone ru-central1-b is disabled. No new resources could be allocated), а запрос квоты на HDD-диски в зонах ru-central1-b и ru-central1-e отклонён поддержкой. Поэтому мастер сделан зональным в ru-central1-a, ноды размещены в зонах a и d. Это ограничение облака, а не конфигурации.
