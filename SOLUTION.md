@@ -1,4 +1,4 @@
-<img width="1293" height="626" alt="image" src="https://github.com/user-attachments/assets/14c70b76-2b11-42e2-893e-67cd200dc192" /># Дипломный практикум в Yandex.Cloud - решение
+<img width="1812" height="59" alt="image" src="https://github.com/user-attachments/assets/aebbaca4-77ff-4d79-93dc-02e3280b2429" />Дипломный практикум в Yandex.Cloud - решение
 
 **Автор:** Плевако С.В.
 
@@ -381,10 +381,18 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 ---
 
 ## 6. Проверка полного цикла
+Проверено, что весь цикл работает на актуальном кластере:
 
-- Коммит в main - CI собирает и пушит образ с тегом sha и latest.
-- Пуш тега v1.0.3 - CD собирает образ с тегом v1.0.3 и деплоит его в кластер. Проверено: kubectl get deployment -n app diploma-app показывает образ cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.3, поды Running.
-- Коммит в terraform/infra - Terraform pipeline выполняет apply.
+1. CI: коммит в main - CI собирает образ с тегами sha и latest и пушит его в Yandex Container Registry.
+
+2. CD: пуш тега v1.0.4 - CD собирает образ с тегом v1.0.4, пушит в registry и деплоит в кластер. Проверка:
+
+```text
+$ kubectl get deployment -n app diploma-app -o jsonpath="{.spec.template.spec.containers[0].image}"; echo
+cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4
+```
+<img width="1812" height="59" alt="image" src="https://github.com/user-attachments/assets/6e7cc3c4-2ddc-416f-a1db-261405882b4c" />
+
 
 ---
 
