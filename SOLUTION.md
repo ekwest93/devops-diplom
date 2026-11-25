@@ -226,7 +226,8 @@ $ yc container image list --repository-name crpisa48st8k0ugp6ong/diploma-app
 ```bash
 helm install kube-prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring --create-namespace \
-  -f k8s-manifests/monitoring/values.yaml
+  -f k8s-manifests/monitoring/values.yaml \
+  -f k8s-manifests/monitoring/grafana-values.yaml
 ```
 
 **Проверка (вывод команды):**
@@ -261,10 +262,12 @@ prometheus-kube-prometheus-kube-prome-prometheus-0       2/2     Running   0    
 
 Сборка и локальная проверка:
 
+```bash
 cd ~/devops-diplom/app
 docker build -t diploma-app:local .
 docker run -d --name diploma-app-test -p 8080:80 diploma-app:local
 curl -s http://localhost:8080
+```
 
 **Проверка (вывод команды):**
 
