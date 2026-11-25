@@ -1,4 +1,4 @@
-<img width="1812" height="59" alt="image" src="https://github.com/user-attachments/assets/aebbaca4-77ff-4d79-93dc-02e3280b2429" />Дипломный практикум в Yandex.Cloud - решение
+Дипломный практикум в Yandex.Cloud - решение
 
 **Автор:** Плевако С.В.
 
@@ -393,6 +393,10 @@ cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4
 ```
 <img width="1812" height="59" alt="image" src="https://github.com/user-attachments/assets/6e7cc3c4-2ddc-416f-a1db-261405882b4c" />
 
+3. Terraform: коммит в terraform/infra - Terraform pipeline выполняет plan и apply.
+
+Все три пайплайна завершились успешно (зелёные статусы в GitHub Actions).
+<img width="1293" height="626" alt="image" src="https://github.com/user-attachments/assets/fb674e02-7856-4217-89ca-09c4d4c2a53c" />
 
 ---
 
