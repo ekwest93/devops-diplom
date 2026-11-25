@@ -349,14 +349,14 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 
 ### 5.1. CI - сборка образа при коммите
 
-Файл .github/workflows/ci.yml.
+Файл [.github/workflows/ci.yml](https://github.com/ekwest93/devops-diplom/blob/main/.github/workflows/ci.yml).
 Триггер: push в main при изменениях в app/ или в самом workflow.
 
 Действия: сборка Docker-образа, smoke-тест (контейнер отвечает 200), push в Yandex Container Registry с тегами по sha коммита и latest.
 
 ### 5.2. CD - релиз и деплой при теге
 
-Файл .github/workflows/cd.yml.
+Файл [.github/workflows/cd.yml](https://github.com/ekwest93/devops-diplom/blob/main/.github/workflows/cd.yml).
 Триггер: push тега v*.*.*.
 
 Действия: сборка образа с тегом релиза, push в registry, деплой в Kubernetes через kubectl set image.
@@ -365,7 +365,7 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 
 ### 5.3. Terraform pipeline
 
-Файл .github/workflows/terraform.yml.
+Файл [.github/workflows/terraform.yml](https://github.com/ekwest93/devops-diplom/blob/main/.github/workflows/terraform.yml).
 Триггер: push в main при изменениях в terraform/infra/.
 
 Действия: terraform init (S3 backend), plan, apply.
