@@ -1,3 +1,4 @@
+Решение дипломного задания: [SOLUTION.md](SOLUTION.md)
 # devops-diplom
 # Дипломный практикум в Yandex.Cloud
   * [Цели:](#цели)
