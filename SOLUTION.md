@@ -1,4 +1,4 @@
-# Дипломный практикум в Yandex.Cloud - решение
+<img width="1293" height="626" alt="image" src="https://github.com/user-attachments/assets/14c70b76-2b11-42e2-893e-67cd200dc192" /># Дипломный практикум в Yandex.Cloud - решение
 
 **Автор:** Плевако С.В.
 
@@ -345,36 +345,38 @@ Grafana в браузере (http://89.169.139.101/grafana/), дашборд с 
 ---
 ## 5. CI/CD на GitHub Actions
 
-В репозитории настроены три пайплайна.
+В репозитории настроены три пайплайна GitHub Actions.
 
 ### 5.1. CI - сборка образа при коммите
 
 Файл .github/workflows/ci.yml.
 Триггер: push в main при изменениях в app/ или в самом workflow.
-Действия: сборка Docker-образа, push в Yandex Container Registry с тегами по sha коммита и latest.
 
-Особенности:
-- yc CLI устанавливается внутри runner.
-- SA-ключ передаётся через секрет YC_SA_KEY_JSON, JSON вырезается из секрета.
-- Сборка только под linux/amd64, provenance: false (иначе cr.yandex отвергает multi-platform manifest).
+Действия: сборка Docker-образа, smoke-тест (контейнер отвечает 200), push в Yandex Container Registry с тегами по sha коммита и latest.
 
 ### 5.2. CD - релиз и деплой при теге
 
 Файл .github/workflows/cd.yml.
 Триггер: push тега v*.*.*.
+
 Действия: сборка образа с тегом релиза, push в registry, деплой в Kubernetes через kubectl set image.
 
-Особенности:
-- kubeconfig генерируется прямо на runner через yc managed-kubernetes cluster get-credentials.
- Сервисный аккаунт для CI/CD - diploma-k8s-sa. Роли: container-registry.admin и editor.
+Проверено на теге v1.0.4: образ cr.yandex/crpisa48st8k0ugp6ong/diploma-app:v1.0.4 задеплоен в кластер.
 
 ### 5.3. Terraform pipeline
 
 Файл .github/workflows/terraform.yml.
 Триггер: push в main при изменениях в terraform/infra/.
+
 Действия: terraform init (S3 backend), plan, apply.
 
+<img width="1293" height="626" alt="image" src="https://github.com/user-attachments/assets/bfe09910-40bc-4fb9-894c-d6166a0c9e09" />
+
+Сервисный аккаунт для CI/CD - diploma-k8s-sa. Роли: container-registry.admin (push образов) и editor (доступ к кластеру).
+
 Секреты репозитория: YC_SA_KEY_JSON, YC_REGISTRY_ID, TF_SA_KEY_JSON, TF_ACCESS_KEY, TF_SECRET_KEY.
+
+Ссылка на Actions: https://github.com/ekwest93/devops-diplom/actions
 
 ---
 
