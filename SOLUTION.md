@@ -61,7 +61,7 @@ devops-diplom/
 |---|---|
 | `editor` | управление ресурсами каталога |
 | `storage.admin` | работа с S3 bucket |
-| `kms.keys.encrypterDecrypter` | шифрование данных в бакете |
+| `kms.keys.encrypterDecrypter` | выдана заранее, шифрование бакета не используется |
 
 **Проверка (вывод команд):**
 
