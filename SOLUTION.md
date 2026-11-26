@@ -33,8 +33,7 @@ devops-diplom/
 │   └── infra/
 ├── app/
 ├── k8s-manifests/
-├── .github/workflows/
-└── images/
+└── .github/workflows/
 ```
 
 ---
